@@ -41,11 +41,15 @@ def analyze(data: ComplaintInput):
     text_vec = vectorizer.transform([data.text])
     pred = model.predict(text_vec)[0]
 
+    priority = priority_score(pred)
+
     return {
         "urgency": urgency_label(pred),
         "category": "Emergency" if pred==2 else "Infrastructure" if pred==1 else "General",
-        "priority": priority_score(pred)
+        "priority": priority,
+        "riskScore": priority * 10   # ⭐ ADD THIS
     }
+
 
 # ---------- Test ----------
 @app.get("/")
