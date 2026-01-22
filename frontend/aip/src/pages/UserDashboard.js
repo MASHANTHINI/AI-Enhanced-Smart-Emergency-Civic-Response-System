@@ -161,6 +161,48 @@ useEffect(() => {
       </form>
 
       <ToastContainer position="top-right" autoClose={3000} />
+      {/* -------- My Complaints Section -------- */}
+<div className="my-complaints">
+  <h2>🗂️ My Complaints</h2>
+
+  {complaints.length === 0 ? (
+    <p style={{ color: "#94a3b8" }}>No complaints yet</p>
+  ) : (
+    <div className="complaints-grid">
+      {complaints.map((c) => (
+        <div key={c._id} className="complaint-card">
+
+          <div className="card-header">
+            <span className={`urgency ${c.urgency?.toLowerCase()}`}>
+              {c.urgency}
+            </span>
+
+            <span className="status">{c.status}</span>
+          </div>
+
+          <p className="desc">{c.text}</p>
+
+          {/* SAFE location render */}
+          {c.location?.lat && (
+            <p className="location">
+              📍 {c.location.lat.toFixed(4)}, {c.location.lng.toFixed(4)}
+            </p>
+          )}
+
+          {c.imageUrl && (
+            <img
+              src={`data:image/jpeg;base64,${c.imageUrl}`}
+              alt="Complaint"
+              className="complaint-image"
+            />
+          )}
+
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
     </div>
   );
 }
