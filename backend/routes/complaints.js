@@ -1,72 +1,136 @@
 const express = require("express");
-const router = express.Router();
 const Complaint = require("../models/Complaint");
-const axios = require("axios");
+const multer = require("multer");
+const protect = require("../middleware/authMiddleware");
 
+const router = express.Router();
 
-/* =================================================
-   CREATE COMPLAINT — WITH AI NLP ANALYSIS
-================================================= */
-router.post("/", async (req, res) => {
-  try {
-    const { text, imageUrl, location } = req.body;
+/* ---------------- MULTER CONFIG ---------------- */
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
-    // 🔥 Call AI microservice
-    const aiRes = await axios.post("http://localhost:8000/analyze", {
-      text: text
-    });
+/* =====================================================
+   CREATE COMPLAINT (USER)
+===================================================== */
+router.post(
+  "/",
+  protect(),               // authenticated user
+  upload.single("image"),  // image is optional
+  async (req, res) => {
+    try {
+      const { text, lat, lng, urgency, category, priority } = req.body;
 
-    const complaint = new Complaint({
-      text,
-      imageUrl,
-      location,
-      urgency: aiRes.data.urgency,
-      category: aiRes.data.category,
-      priority: aiRes.data.priority,
-      status: "Pending"
-    });
+      /* ---------- VALIDATION ---------- */
+      if (!text || !lat || !lng) {
+        return res.status(400).json({
+          message: "Text and location required",
+        });
+      }
 
-    await complaint.save();
-    res.json(complaint);
+      /* ---------- IMAGE ---------- */
+      const image = req.file
+        ? req.file.buffer.toString("base64")
+        : "";
 
-  } catch (err) {
-    console.error("AI CREATE ERROR:", err.message);
-    res.status(500).json({ error: "AI analysis or DB save failed" });
+      /* ---------- CREATE COMPLAINT ---------- */
+      const complaint = new Complaint({
+        user: req.user.id,
+        text,
+        location: {
+          lat: Number(lat),
+          lng: Number(lng),
+        },
+        urgency: urgency || "Medium",
+        category: category || "General",
+        priority: priority ? Number(priority) : 1,
+        imageUrl: image,
+        status: "Pending",
+      });
+
+      await complaint.save();
+
+      res.status(201).json(complaint);
+    } catch (err) {
+      console.error("CREATE COMPLAINT ERROR:", err);
+      res.status(500).json({
+        message: "Complaint creation failed",
+      });
+    }
   }
-});
+);
 
+/* =====================================================
+   GET MY COMPLAINTS (USER)
+===================================================== */
+router.get(
+  "/my",
+  protect(),
+  async (req, res) => {
+    try {
+      const complaints = await Complaint.find({
+        user: req.user.id,
+      }).sort({ createdAt: -1 });
 
-/* =================================================
-   GET ALL COMPLAINTS (SORTED BY PRIORITY)
-================================================= */
-router.get("/", async (req, res) => {
-  try {
-    const data = await Complaint.find().sort({ priority: -1 });
-    res.json(data);
-  } catch (err) {
-    console.error("FETCH ERROR:", err.message);
-    res.status(500).json({ error: "Fetch failed" });
+      res.json(complaints);
+    } catch (err) {
+      console.error("FETCH MY COMPLAINTS ERROR:", err);
+      res.status(500).json({
+        message: "Fetch failed",
+      });
+    }
   }
-});
+);
 
+/* =====================================================
+   GET ALL COMPLAINTS (ADMIN)
+===================================================== */
+router.get(
+  "/",
+  protect(["admin"]),
+  async (req, res) => {
+    try {
+      const complaints = await Complaint.find()
+        .populate("user", "name email")
+        .sort({ priority: -1, createdAt: -1 });
 
-/* =================================================
-   APPROVE COMPLAINT (HUMAN IN LOOP)
-================================================= */
-router.put("/:id/approve", async (req, res) => {
-  try {
-    const updated = await Complaint.findByIdAndUpdate(
-      req.params.id,
-      { status: "Approved" },
-      { new: true }
-    );
-
-    res.json(updated);
-
-  } catch (err) {
-    console.error("APPROVE ERROR:", err.message);
-    res.status(500).json({ error: "Approval failed" });
+      res.json(complaints);
+    } catch (err) {
+      console.error("FETCH ALL COMPLAINTS ERROR:", err);
+      res.status(500).json({
+        message: "Fetch failed",
+      });
+    }
   }
-});
+);
+
+/* =====================================================
+   APPROVE COMPLAINT (ADMIN)
+===================================================== */
+router.put(
+  "/:id/approve",
+  protect(["admin"]),
+  async (req, res) => {
+    try {
+      const updated = await Complaint.findByIdAndUpdate(
+        req.params.id,
+        { status: "Approved" },
+        { new: true }
+      );
+
+      if (!updated) {
+        return res.status(404).json({
+          message: "Complaint not found",
+        });
+      }
+
+      res.json(updated);
+    } catch (err) {
+      console.error("APPROVE COMPLAINT ERROR:", err);
+      res.status(500).json({
+        message: "Approval failed",
+      });
+    }
+  }
+);
 
 module.exports = router;

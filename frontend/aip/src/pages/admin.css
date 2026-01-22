@@ -1,0 +1,42 @@
+header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+header p {
+  color: #94a3b8;
+}
+
+/* ---------- STATS ---------- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #1e293b, #020617);
+  padding: 18px;
+  border-radius: 14px;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+}
+
+.stat-card.pending {
+  border-left: 5px solid #f59e0b;
+}
+
+.stat-card.approved {
+  border-left: 5px solid #22c55e;
+}
+
+.stat-card h2 {
+  margin: 0;
+  font-size: 32px;
+}

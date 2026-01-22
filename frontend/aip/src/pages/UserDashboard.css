@@ -1,0 +1,236 @@
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #020617;
+  color: white;
+}
+
+.dashboard-container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 30px;
+}
+
+header h1 {
+  font-size: 32px;
+  margin-bottom: 5px;
+  color: #ef4444;
+  text-align: center;
+}
+
+header p {
+  text-align: center;
+  color: #94a3b8;
+  margin-bottom: 30px;
+}
+
+/* -------- Form Section -------- */
+.lux-form {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 40px;
+}
+
+.lux-form h2 {
+  color: #22c55e;
+  margin-bottom: 10px;
+}
+
+.lux-form textarea,
+.lux-form input[type="text"],
+.lux-form input[type="file"] {
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  outline: none;
+  background: #0f172a;
+  color: white;
+  font-size: 14px;
+}
+
+.lux-form textarea::placeholder,
+.lux-form input::placeholder {
+  color: #94a3b8;
+}
+
+.lux-form button {
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  font-weight: bold;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.lux-form button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
+
+/* -------- My Complaints Grid -------- */
+.my-complaints {
+  margin-top: 40px;
+}
+
+.my-complaints h2 {
+  color: #ef4444;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.complaints-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.complaint-card {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  transition: 0.3s ease;
+}
+
+.complaint-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.7);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.urgency {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.urgency.high { background: #dc2626; }
+.urgency.medium { background: #f59e0b; }
+.urgency.low { background: #22c55e; }
+
+.status {
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: #334155;
+  font-weight: bold;
+}
+
+.user {
+  font-size: 13px;
+  font-weight: bold;
+  color: #22c55e;
+  margin-bottom: 5px;
+}
+
+.category {
+  font-weight: bold;
+  font-size: 14px;
+  color: #facc15;
+  margin-bottom: 5px;
+}
+
+.desc {
+  font-size: 14px;
+  color: #cbd5f5;
+  margin-bottom: 10px;
+}
+
+.location,
+.risk,
+.priority {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.complaint-image {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  border: 1px solid #334155;
+}
+
+.complaint-card button {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.complaint-card button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+/* ---------------- MAP FIX ---------------- */
+
+.map-wrapper {
+  width: 100%;
+  height: 380px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #334155;
+  background: #020617;
+}
+
+/* Leaflet container */
+.leaflet-map {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+}
+
+/* Prevent map tiles overflow */
+.leaflet-container {
+  background: #020617;
+  z-index: 0;
+}
+
+/* Fix marker popup text */
+.leaflet-popup-content {
+  color: #020617;
+  font-size: 13px;
+}
+
+/* Optional: smooth zoom */
+.leaflet-container {
+  outline: none;
+}.use-location-btn {
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  font-weight: bold;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.use-location-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
