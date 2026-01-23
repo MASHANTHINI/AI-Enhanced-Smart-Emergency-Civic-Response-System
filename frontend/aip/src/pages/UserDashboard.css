@@ -234,3 +234,126 @@ header p {
   transform: translateY(-3px);
   box-shadow: 0 8px 20px rgba(0,0,0,0.4);
 }
+/* ---------------- My Complaints Card Enhancements ---------------- */
+
+/* Driver info box */
+.driver-info {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f1f5f9; /* light gray/blue */
+  border-left: 4px solid #2563eb; /* blue accent */
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+
+.driver-info h4 {
+  margin: 0 0 5px 0;
+  font-size: 1rem;
+  color: #1d4ed8; /* slightly darker blue */
+}
+
+/* Driver detail paragraphs */
+.driver-info p {
+  margin: 2px 0;
+}
+
+/* Completed complaint time */
+.complaint-card small {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: #16a34a; /* green for completed */
+}
+
+/* Urgency tags */
+.urgency.high {
+  background-color: #f87171; /* red */
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.urgency.medium {
+  background-color: #fbbf24; /* yellow */
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.urgency.low {
+  background-color: #34d399; /* green */
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+/* Status badge */
+.status {
+  background-color: #64748b; /* gray */
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  margin-left: 8px;
+}
+
+/* Complaint card adjustments for spacing */
+.complaint-card {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+}
+
+.complaint-card:hover {
+  transform: translateY(-2px);
+}
+
+.complaint-card .desc {
+  margin: 6px 0;
+  font-size: 0.95rem;
+}
+
+.complaint-card img.complaint-image {
+  max-width: 100%;
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+/* Location text */
+.complaint-card .location {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 4px 0;
+}
+
+/* Grid layout */
+.complaints-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+
+/* My complaints header */
+.my-complaints h2 {
+  margin-bottom: 10px;
+  color: #1e293b;
+}
+
+/* Optional: highlight high urgency cards */
+.complaint-card .urgency.high {
+  border-left: 4px solid #dc2626; /* deep red for high urgency */
+}

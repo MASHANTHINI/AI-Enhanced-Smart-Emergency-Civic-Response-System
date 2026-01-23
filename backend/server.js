@@ -1,33 +1,60 @@
-// server.js
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config(); // Load .env variables
+require("dotenv").config();
 
-// Routes
-const complaintRoutes = require("./routes/complaints");
-const authRoutes = require("./routes/auth");
-
+/* =============================
+   CREATE APP FIRST  ⭐ IMPORTANT
+============================= */
 const app = express();
 
-/* ---------- MIDDLEWARE ---------- */
+/* =============================
+   MIDDLEWARE
+============================= */
 app.use(cors());
-app.use(express.json()); // parse JSON bodies
+app.use(express.json());
 
-/* ---------- DATABASE ---------- */
-const mongoURI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/emergency_ai";
+/* =============================
+   ROUTES IMPORT
+============================= */
+const complaintRoutes = require("./routes/complaints");
+const authRoutes = require("./routes/auth");
+const driverRoutes = require("./routes/drivers");
 
-mongoose.connect(mongoURI)
+/* =============================
+   ROUTES USE
+============================= */
+app.use("/api/auth", authRoutes);
+app.use("/api/complaints", complaintRoutes);
+app.use("/api/drivers", driverRoutes);
+
+/* =============================
+   DATABASE
+============================= */
+const mongoURI =
+  process.env.MONGO_URI || "mongodb://127.0.0.1:27017/emergency_ai";
+
+mongoose
+  .connect(mongoURI)
   .then(() => console.log("✅ MongoDB Connected"))
-  .catch(err => console.error("❌ MongoDB Error:", err));
+  .catch((err) => console.error("❌ MongoDB Error:", err));
 
-/* ---------- ROUTES ---------- */
-app.use("/api/auth", authRoutes);          // register & login
-app.use("/api/complaints", complaintRoutes); // complaints (protected routes later)
+/* =============================
+   HEALTH CHECK
+============================= */
+app.get("/", (req, res) =>
+  res.send("🚨 Emergency AI Backend Running")
+);
 
-/* ---------- HEALTH CHECK ---------- */
-app.get("/", (req, res) => res.send("🚨 Emergency AI Backend Running"));
+app.use(express.json()); // VERY IMPORTANT
 
-/* ---------- SERVER ---------- */
+/* =============================
+   SERVER
+============================= */
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
+app.listen(PORT, () =>
+  console.log(`🚀 Server running at http://localhost:${PORT}`)
+);
+require("./services/telegramBot");
+

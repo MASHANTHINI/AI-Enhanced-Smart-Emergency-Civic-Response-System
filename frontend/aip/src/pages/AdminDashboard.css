@@ -147,3 +147,121 @@ header p {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0,0,0,0.4);
 }
+/* ---------- Toggle Add Driver Button ---------- */
+.toggle-driver-form {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  font-weight: bold;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-bottom: 15px;
+  font-size: 15px;
+  transition: 0.2s ease;
+}
+
+.toggle-driver-form:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+/* ---------- Collapsible Driver Form ---------- */
+.driver-form {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  padding: 20px;
+  border-radius: 16px;
+  margin-bottom: 30px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: slideDown 0.3s ease forwards;
+}
+
+.driver-form input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: none;
+  background: #1e293b;
+  color: white;
+  font-size: 14px;
+  transition: 0.2s ease;
+}
+
+.driver-form input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #22c55e;
+}
+
+.driver-form button {
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.driver-form button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+/* ---------- Drivers List ---------- */
+.drivers-list {
+  margin-bottom: 30px;
+}
+
+.drivers-list h2 {
+  color: #ef4444;
+  font-size: 20px;
+  margin-bottom: 15px;
+}
+
+.driver-card {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  padding: 15px;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+  margin-bottom: 12px;
+  transition: 0.2s ease;
+}
+
+.driver-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+}
+
+.driver-card p {
+  font-size: 13px;
+  margin: 4px 0;
+  color: #cbd5f5;
+}
+
+.driver-card p:first-child {
+  font-weight: bold;
+  color: #22c55e;
+}
+
+/* ---------- Slide Down Animation ---------- */
+@keyframes slideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.selected-coords {
+  font-size: 12px;
+  color: #22c55e;
+  margin-top: 8px;
+  text-align: center;
+}
+
