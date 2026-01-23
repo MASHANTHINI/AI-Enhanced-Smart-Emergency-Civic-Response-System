@@ -29,6 +29,13 @@ function UserDashboard() {
   useEffect(() => {
     loadComplaints();
   }, []);
+<<<<<<< HEAD
+=======
+
+  useEffect(() => {
+    console.log("Complaints from API:", complaints);
+  }, [complaints]);
+>>>>>>> adc84def6f5cbc6115ac06c6b0c331365685d0b0
 
   /* -------- USE CURRENT LOCATION -------- */
   const useMyLocation = () => {
@@ -78,10 +85,16 @@ function UserDashboard() {
     };
 
     try {
+<<<<<<< HEAD
       await axios.post("http://localhost:5001/api/complaints", payload, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`, // safe even if backend not using auth
+=======
+      await axios.post("http://localhost:5001/api/complaints", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+>>>>>>> adc84def6f5cbc6115ac06c6b0c331365685d0b0
         },
       });
 
@@ -151,6 +164,7 @@ function UserDashboard() {
       </form>
 
       <ToastContainer position="top-right" autoClose={3000} />
+<<<<<<< HEAD
 
       {/* -------- Complaints Section -------- */}
       <div className="my-complaints">
@@ -166,16 +180,66 @@ function UserDashboard() {
                   <span className={`urgency ${c.urgency?.toLowerCase()}`}>
                     {c.urgency}
                   </span>
+=======
+
+      {/* -------- My Complaints Section -------- */}
+      <div className="my-complaints">
+        <h2>🗂️ My Complaints</h2>
+
+        {complaints.length === 0 ? (
+          <p style={{ color: "#94a3b8" }}>No complaints yet</p>
+        ) : (
+          <div className="complaints-grid">
+            {complaints.map((c) => (
+              <div key={c._id} className="complaint-card">
+                <div className="card-header">
+                  <span className={`urgency ${c.urgency?.toLowerCase()}`}>
+                    {c.urgency}
+                  </span>
+
+>>>>>>> adc84def6f5cbc6115ac06c6b0c331365685d0b0
                   <span className="status">{c.status}</span>
                 </div>
 
                 <p className="desc">{c.text}</p>
 
+<<<<<<< HEAD
+=======
+                {/* SAFE location render */}
+>>>>>>> adc84def6f5cbc6115ac06c6b0c331365685d0b0
                 {c.location?.lat && (
                   <p className="location">
                     📍 {c.location.lat.toFixed(4)}, {c.location.lng.toFixed(4)}
                   </p>
                 )}
+<<<<<<< HEAD
+=======
+
+                {c.imageUrl && (
+                  <img
+                    src={`data:image/jpeg;base64,${c.imageUrl}`}
+                    alt="Complaint"
+                    className="complaint-image"
+                  />
+                )}
+
+                {/* 🚑 Driver Info for assigned complaints */}
+                {c.assignedDriver && (
+                  <div className="driver-info">
+                    <h4>🚑 Driver Details</h4>
+                    <p>Name: {c.assignedDriver.name}</p>
+                    <p>Phone: {c.assignedDriver.phone}</p>
+                    <p>Status: {c.driverStatus}</p>
+                  </div>
+                )}
+
+                {/* ✅ Resolved Time */}
+                {c.driverStatus === "Completed" && c.resolvedTime && (
+                  <small style={{ color: "#16a34a" }}>
+                    Completed at: {new Date(c.resolvedTime).toLocaleString()}
+                  </small>
+                )}
+>>>>>>> adc84def6f5cbc6115ac06c6b0c331365685d0b0
               </div>
             ))}
           </div>
