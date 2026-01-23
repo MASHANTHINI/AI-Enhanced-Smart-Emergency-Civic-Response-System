@@ -1,104 +1,83 @@
 const express = require("express");
+const router = express.Router();
 const axios = require("axios");
 const Complaint = require("../models/Complaint");
-const multer = require("multer");
-const protect = require("../middleware/authMiddleware");
 
-const router = express.Router();
-
-/* ---------- MULTER ---------- */
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
-
-/* =====================================================
-   CREATE COMPLAINT
-===================================================== */
-router.post("/", protect(), upload.single("image"), async (req, res) => {
+/* -----------------------------------
+   CREATE COMPLAINT (AI OPTIONAL)
+------------------------------------ */
+router.post("/", async (req, res) => {
   try {
-    const { text, lat, lng } = req.body;
+    const { text, imageUrl, location } = req.body;
 
-    if (!text || !lat || !lng) {
-      return res.status(400).json({ message: "Text and location required" });
+    let urgency = "Low";
+    let priority = 1;
+
+    // 🔹 AI SERVICE (optional)
+    try {
+      const aiRes = await axios.post("http://localhost:8000/analyze", {
+        complaint: text,
+      });
+      urgency = aiRes.data.urgency;
+      priority = aiRes.data.priority;
+    } catch (aiErr) {
+      console.log("⚠️ AI service not reachable, using default values");
     }
 
-    /* 🔥 CALL FASTAPI */
-    const aiRes = await axios.post("http://localhost:8000/analyze", { text });
+    let category = "General";
+    if (urgency === "High") category = "Emergency";
+    else category = "Infrastructure";
 
-    const { urgency, priority, category } = aiRes.data;
-
-    const complaint = new Complaint({
-      user: req.user.id,
+    const c = new Complaint({
       text,
-
-      // ✅ MUST MATCH SCHEMA
+      imageUrl,
       location: {
-        lat: Number(lat),
-        lng: Number(lng),
+        lat: location.lat,
+        lng: location.lng,
       },
-
-      imageUrl: req.file ? req.file.buffer.toString("base64") : "",
-
       urgency,
-      priority,
       category,
-      riskScore: priority * 10,
+      priority,
+      agentStatus: "Waiting",
       status: "Pending",
     });
 
-    await complaint.save();
-
-    res.status(201).json(complaint);
+    await c.save();
+    res.json(c);
   } catch (err) {
-    console.error("CREATE ERROR:", err);
-    res.status(500).json({ message: "Server error" });
+    console.error("❌ Create complaint error:", err);
+    res.status(500).json({ error: "Complaint creation failed" });
   }
 });
 
-
-/* =====================================================
-   GET MY COMPLAINTS
-===================================================== */
-router.get("/my", protect(), async (req, res) => {
+/* -----------------------------------
+   GET ALL COMPLAINTS
+------------------------------------ */
+router.get("/", async (req, res) => {
   try {
-    const complaints = await Complaint.find({ user: req.user.id }).sort({
+    const data = await Complaint.find().sort({
+      priority: -1,
       createdAt: -1,
     });
-
-    res.json(complaints);
+    res.json(data);
   } catch (err) {
-    res.status(500).json({ message: "Fetch failed" });
+    console.error("❌ Fetch error:", err);
+    res.status(500).json({ error: "Fetch failed" });
   }
 });
 
-/* =====================================================
-   GET ALL (ADMIN)
-===================================================== */
-router.get("/", protect(["admin"]), async (req, res) => {
+/* -----------------------------------
+   APPROVE COMPLAINT
+------------------------------------ */
+router.put("/:id/approve", async (req, res) => {
   try {
-    const complaints = await Complaint.find()
-      .populate("user", "name email")
-      .sort({ priority: -1 });
-
-    res.json(complaints);
+    await Complaint.findByIdAndUpdate(req.params.id, {
+      status: "Approved",
+    });
+    res.json({ message: "Approved" });
   } catch (err) {
-    res.status(500).json({ message: "Fetch failed" });
-  }
-});
-
-/* =====================================================
-   APPROVE
-===================================================== */
-router.put("/:id/approve", protect(["admin"]), async (req, res) => {
-  try {
-    const updated = await Complaint.findByIdAndUpdate(
-      req.params.id,
-      { status: "Approved" },
-      { new: true }
-    );
-
-    res.json(updated);
-  } catch (err) {
-    res.status(500).json({ message: "Approval failed" });
+    console.error("❌ Approve error:", err);
+    res.status(500).json({ error: "Approve failed" });
   }
 });
 

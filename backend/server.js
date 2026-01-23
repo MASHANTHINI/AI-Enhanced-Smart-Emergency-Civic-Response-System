@@ -1,33 +1,30 @@
-// server.js
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config(); // Load .env variables
 
-// Routes
 const complaintRoutes = require("./routes/complaints");
 const authRoutes = require("./routes/auth");
 
 const app = express();
 
-/* ---------- MIDDLEWARE ---------- */
+// -------- MIDDLEWARE --------
 app.use(cors());
-app.use(express.json()); // parse JSON bodies
+app.use(express.json());
 
-/* ---------- DATABASE ---------- */
-const mongoURI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/emergency_ai";
+// -------- ROUTES --------
+app.use("/api/complaints", complaintRoutes);
+app.use("/api/auth", authRoutes);
 
-mongoose.connect(mongoURI)
+
+// -------- DB CONNECTION --------
+mongoose
+  .connect("mongodb://127.0.0.1:27017/ai_complaints")
   .then(() => console.log("✅ MongoDB Connected"))
-  .catch(err => console.error("❌ MongoDB Error:", err));
+  .catch((err) => console.error("❌ Mongo Error:", err));
 
-/* ---------- ROUTES ---------- */
-app.use("/api/auth", authRoutes);          // register & login
-app.use("/api/complaints", complaintRoutes); // complaints (protected routes later)
 
-/* ---------- HEALTH CHECK ---------- */
-app.get("/", (req, res) => res.send("🚨 Emergency AI Backend Running"));
-
-/* ---------- SERVER ---------- */
-const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+// -------- START SERVER --------
+const PORT = 5001;
+app.listen(PORT, () => {
+  console.log(`✅ Server running on http://localhost:${PORT}`);
+});

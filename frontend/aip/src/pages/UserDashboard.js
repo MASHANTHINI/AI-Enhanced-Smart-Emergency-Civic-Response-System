@@ -7,7 +7,7 @@ import MapView from "../Components/MapView";
 
 function UserDashboard() {
   const [text, setText] = useState("");
-  const [image, setImage] = useState(null);
+  const [image, setImage] = useState(null); // (not used by backend now)
   const [complaints, setComplaints] = useState([]);
 
   // 📍 location state
@@ -15,15 +15,10 @@ function UserDashboard() {
 
   const token = localStorage.getItem("token");
 
-  /* -------- LOAD USER COMPLAINTS -------- */
+  /* -------- LOAD ALL COMPLAINTS -------- */
   const loadComplaints = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:5001/api/complaints/my",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const res = await axios.get("http://localhost:5001/api/complaints");
       setComplaints(res.data);
     } catch (err) {
       console.error(err);
@@ -34,9 +29,6 @@ function UserDashboard() {
   useEffect(() => {
     loadComplaints();
   }, []);
-useEffect(() => {
-  console.log("Complaints from API:", complaints);
-}, [complaints]);
 
   /* -------- USE CURRENT LOCATION -------- */
   const useMyLocation = () => {
@@ -75,29 +67,26 @@ useEffect(() => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("text", text);
-    formData.append("lat", location.lat);
-    formData.append("lng", location.lng);
-
-    if (image) {
-      formData.append("image", image);
-    }
+    // ✅ SEND JSON (matches backend)
+    const payload = {
+      text,
+      imageUrl: null, // backend supports this field
+      location: {
+        lat: location.lat,
+        lng: location.lng,
+      },
+    };
 
     try {
-      await axios.post(
-        "http://localhost:5001/api/complaints",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await axios.post("http://localhost:5001/api/complaints", payload, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // safe even if backend not using auth
+        },
+      });
 
       toast.success("Complaint submitted successfully!");
 
-      // reset form
       setText("");
       setImage(null);
       setLocation(null);
@@ -105,7 +94,7 @@ useEffect(() => {
       loadComplaints();
     } catch (err) {
       console.error(err.response?.data || err);
-      toast.error(err.response?.data?.message || "Failed to submit complaint");
+      toast.error("Failed to submit complaint");
     }
   };
 
@@ -151,6 +140,7 @@ useEffect(() => {
           </>
         )}
 
+        {/* (Image upload kept for future, backend not using now) */}
         <input
           type="file"
           accept="image/*"
@@ -161,48 +151,36 @@ useEffect(() => {
       </form>
 
       <ToastContainer position="top-right" autoClose={3000} />
-      {/* -------- My Complaints Section -------- */}
-<div className="my-complaints">
-  <h2>🗂️ My Complaints</h2>
 
-  {complaints.length === 0 ? (
-    <p style={{ color: "#94a3b8" }}>No complaints yet</p>
-  ) : (
-    <div className="complaints-grid">
-      {complaints.map((c) => (
-        <div key={c._id} className="complaint-card">
+      {/* -------- Complaints Section -------- */}
+      <div className="my-complaints">
+        <h2>🗂️ Complaints</h2>
 
-          <div className="card-header">
-            <span className={`urgency ${c.urgency?.toLowerCase()}`}>
-              {c.urgency}
-            </span>
+        {complaints.length === 0 ? (
+          <p style={{ color: "#94a3b8" }}>No complaints yet</p>
+        ) : (
+          <div className="complaints-grid">
+            {complaints.map((c) => (
+              <div key={c._id} className="complaint-card">
+                <div className="card-header">
+                  <span className={`urgency ${c.urgency?.toLowerCase()}`}>
+                    {c.urgency}
+                  </span>
+                  <span className="status">{c.status}</span>
+                </div>
 
-            <span className="status">{c.status}</span>
+                <p className="desc">{c.text}</p>
+
+                {c.location?.lat && (
+                  <p className="location">
+                    📍 {c.location.lat.toFixed(4)}, {c.location.lng.toFixed(4)}
+                  </p>
+                )}
+              </div>
+            ))}
           </div>
-
-          <p className="desc">{c.text}</p>
-
-          {/* SAFE location render */}
-          {c.location?.lat && (
-            <p className="location">
-              📍 {c.location.lat.toFixed(4)}, {c.location.lng.toFixed(4)}
-            </p>
-          )}
-
-          {c.imageUrl && (
-            <img
-              src={`data:image/jpeg;base64,${c.imageUrl}`}
-              alt="Complaint"
-              className="complaint-image"
-            />
-          )}
-
-        </div>
-      ))}
-    </div>
-  )}
-</div>
-
+        )}
+      </div>
     </div>
   );
 }

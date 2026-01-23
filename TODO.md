@@ -1,0 +1,4 @@
+- [x] Import User model from models/User.js in auth.js and remove local schema definition
+- [x] Update register route in auth.js to accept and store role from request body
+- [x] Update login route in auth.js to include role in the response JSON
+- [x] Test login functionality after fixes
