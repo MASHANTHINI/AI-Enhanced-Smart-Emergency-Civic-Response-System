@@ -1,59 +1,94 @@
 const express = require("express");
-const router = express.Router();
-const Complaint = require("../models/Complaint");
 const axios = require("axios");
+const Complaint = require("../models/Complaint");
+const multer = require("multer");
+const protect = require("../middleware/authMiddleware");
 
+const router = express.Router();
 
-/* =================================================
-   CREATE COMPLAINT — WITH AI NLP ANALYSIS
-================================================= */
-router.post("/", async (req, res) => {
+/* ---------- MULTER ---------- */
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+/* =====================================================
+   CREATE COMPLAINT
+===================================================== */
+router.post("/", protect(), upload.single("image"), async (req, res) => {
   try {
-    const { text, imageUrl, location } = req.body;
+    const { text, lat, lng } = req.body;
 
-    // 🔥 Call AI microservice
-    const aiRes = await axios.post("http://localhost:8000/analyze", {
-      text: text
-    });
+    if (!text || !lat || !lng) {
+      return res.status(400).json({ message: "Text and location required" });
+    }
+
+    /* 🔥 CALL FASTAPI */
+    const aiRes = await axios.post("http://localhost:8000/analyze", { text });
+
+    const { urgency, priority, category } = aiRes.data;
 
     const complaint = new Complaint({
+      user: req.user.id,
       text,
-      imageUrl,
-      location,
-      urgency: aiRes.data.urgency,
-      category: aiRes.data.category,
-      priority: aiRes.data.priority,
-      status: "Pending"
+
+      // ✅ MUST MATCH SCHEMA
+      location: {
+        lat: Number(lat),
+        lng: Number(lng),
+      },
+
+      imageUrl: req.file ? req.file.buffer.toString("base64") : "",
+
+      urgency,
+      priority,
+      category,
+      riskScore: priority * 10,
+      status: "Pending",
     });
 
     await complaint.save();
-    res.json(complaint);
 
+    res.status(201).json(complaint);
   } catch (err) {
-    console.error("AI CREATE ERROR:", err.message);
-    res.status(500).json({ error: "AI analysis or DB save failed" });
+    console.error("CREATE ERROR:", err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
 
-/* =================================================
-   GET ALL COMPLAINTS (SORTED BY PRIORITY)
-================================================= */
-router.get("/", async (req, res) => {
+/* =====================================================
+   GET MY COMPLAINTS
+===================================================== */
+router.get("/my", protect(), async (req, res) => {
   try {
-    const data = await Complaint.find().sort({ priority: -1 });
-    res.json(data);
+    const complaints = await Complaint.find({ user: req.user.id }).sort({
+      createdAt: -1,
+    });
+
+    res.json(complaints);
   } catch (err) {
-    console.error("FETCH ERROR:", err.message);
-    res.status(500).json({ error: "Fetch failed" });
+    res.status(500).json({ message: "Fetch failed" });
   }
 });
 
+/* =====================================================
+   GET ALL (ADMIN)
+===================================================== */
+router.get("/", protect(["admin"]), async (req, res) => {
+  try {
+    const complaints = await Complaint.find()
+      .populate("user", "name email")
+      .sort({ priority: -1 });
 
-/* =================================================
-   APPROVE COMPLAINT (HUMAN IN LOOP)
-================================================= */
-router.put("/:id/approve", async (req, res) => {
+    res.json(complaints);
+  } catch (err) {
+    res.status(500).json({ message: "Fetch failed" });
+  }
+});
+
+/* =====================================================
+   APPROVE
+===================================================== */
+router.put("/:id/approve", protect(["admin"]), async (req, res) => {
   try {
     const updated = await Complaint.findByIdAndUpdate(
       req.params.id,
@@ -62,10 +97,8 @@ router.put("/:id/approve", async (req, res) => {
     );
 
     res.json(updated);
-
   } catch (err) {
-    console.error("APPROVE ERROR:", err.message);
-    res.status(500).json({ error: "Approval failed" });
+    res.status(500).json({ message: "Approval failed" });
   }
 });
 
