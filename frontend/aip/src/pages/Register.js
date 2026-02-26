@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "./Register.css";
 
 function Register() {
-  const navigate = useNavigate(); // ✅ initialize navigate
+  const navigate = useNavigate(); //  initialize navigate
 
   // form state
   const [name, setName] = useState("");
@@ -34,7 +34,7 @@ function Register() {
 
   return (
     <div className="register-box">
-      <h2>📝 Create Account</h2>
+      <h2>Create Account</h2>
 
       <form onSubmit={handleRegister}>
         <input

@@ -7,18 +7,26 @@ import MapView from "../Components/MapView";
 
 function UserDashboard() {
   const [text, setText] = useState("");
-  const [image, setImage] = useState(null); // (not used by backend now)
+  const [image, setImage] = useState(null); // future use
   const [complaints, setComplaints] = useState([]);
-
-  // 📍 location state
   const [location, setLocation] = useState(null);
 
   const token = localStorage.getItem("token");
 
-  /* -------- LOAD ALL COMPLAINTS -------- */
+  /* ================================
+     LOAD USER COMPLAINTS
+  ================================= */
   const loadComplaints = async () => {
     try {
-      const res = await axios.get("http://localhost:5001/api/complaints");
+      const res = await axios.get(
+        "http://localhost:5001/api/complaints/my",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       setComplaints(res.data);
     } catch (err) {
       console.error(err);
@@ -29,15 +37,10 @@ function UserDashboard() {
   useEffect(() => {
     loadComplaints();
   }, []);
-<<<<<<< HEAD
-=======
 
-  useEffect(() => {
-    console.log("Complaints from API:", complaints);
-  }, [complaints]);
->>>>>>> adc84def6f5cbc6115ac06c6b0c331365685d0b0
-
-  /* -------- USE CURRENT LOCATION -------- */
+  /* ================================
+     USE CURRENT LOCATION
+  ================================= */
   const useMyLocation = () => {
     if (!navigator.geolocation) {
       toast.error("Geolocation not supported");
@@ -60,7 +63,9 @@ function UserDashboard() {
     );
   };
 
-  /* -------- SUBMIT COMPLAINT -------- */
+  /* ================================
+     SUBMIT COMPLAINT
+  ================================= */
   const submitComplaint = async (e) => {
     e.preventDefault();
 
@@ -74,29 +79,23 @@ function UserDashboard() {
       return;
     }
 
-    // ✅ SEND JSON (matches backend)
     const payload = {
       text,
-      imageUrl: null, // backend supports this field
-      location: {
-        lat: location.lat,
-        lng: location.lng,
-      },
+      lat: location.lat,
+      lng: location.lng,
     };
 
     try {
-<<<<<<< HEAD
-      await axios.post("http://localhost:5001/api/complaints", payload, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // safe even if backend not using auth
-=======
-      await axios.post("http://localhost:5001/api/complaints", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
->>>>>>> adc84def6f5cbc6115ac06c6b0c331365685d0b0
-        },
-      });
+      await axios.post(
+        "http://localhost:5001/api/complaints",
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       toast.success("Complaint submitted successfully!");
 
@@ -114,10 +113,13 @@ function UserDashboard() {
   return (
     <div className="dashboard-container">
       <header>
-        <h1>📢 Report an Issue</h1>
+        <h1>Report an Issue</h1>
         <p>Select your location to report the issue</p>
       </header>
 
+      {/* ================================
+          COMPLAINT FORM
+      ================================= */}
       <form onSubmit={submitComplaint} className="lux-form">
         <textarea
           placeholder="Describe the issue..."
@@ -126,16 +128,15 @@ function UserDashboard() {
           required
         />
 
-        {/* 📍 Use Current Location */}
         <button
           type="button"
           className="use-location-btn"
           onClick={useMyLocation}
         >
-          📍 Use My Current Location
+          Use My Current Location
         </button>
 
-        {/* 🗺️ Map only after location is set */}
+        {/* Show map only if location selected */}
         {location && (
           <>
             <div className="map-wrapper">
@@ -147,13 +148,13 @@ function UserDashboard() {
             </div>
 
             <small style={{ color: "#94a3b8" }}>
-              📍 Selected Location: {location.lat.toFixed(5)},{" "}
-              {location.lng.toFixed(5)}
+              Selected Location:{" "}
+              {location.lat.toFixed(5)}, {location.lng.toFixed(5)}
             </small>
           </>
         )}
 
-        {/* (Image upload kept for future, backend not using now) */}
+        {/* Optional future image upload */}
         <input
           type="file"
           accept="image/*"
@@ -164,11 +165,12 @@ function UserDashboard() {
       </form>
 
       <ToastContainer position="top-right" autoClose={3000} />
-<<<<<<< HEAD
 
-      {/* -------- Complaints Section -------- */}
+      {/* ================================
+          MY COMPLAINTS SECTION
+      ================================= */}
       <div className="my-complaints">
-        <h2>🗂️ Complaints</h2>
+        <h2>My Complaints</h2>
 
         {complaints.length === 0 ? (
           <p style={{ color: "#94a3b8" }}>No complaints yet</p>
@@ -178,68 +180,51 @@ function UserDashboard() {
               <div key={c._id} className="complaint-card">
                 <div className="card-header">
                   <span className={`urgency ${c.urgency?.toLowerCase()}`}>
-                    {c.urgency}
+                    {c.urgency || "Low"}
                   </span>
-=======
-
-      {/* -------- My Complaints Section -------- */}
-      <div className="my-complaints">
-        <h2>🗂️ My Complaints</h2>
-
-        {complaints.length === 0 ? (
-          <p style={{ color: "#94a3b8" }}>No complaints yet</p>
-        ) : (
-          <div className="complaints-grid">
-            {complaints.map((c) => (
-              <div key={c._id} className="complaint-card">
-                <div className="card-header">
-                  <span className={`urgency ${c.urgency?.toLowerCase()}`}>
-                    {c.urgency}
+                  <span className={`status ${c.status?.toLowerCase()}`}>
+                    {c.status}
                   </span>
-
->>>>>>> adc84def6f5cbc6115ac06c6b0c331365685d0b0
-                  <span className="status">{c.status}</span>
                 </div>
 
                 <p className="desc">{c.text}</p>
 
-<<<<<<< HEAD
-=======
-                {/* SAFE location render */}
->>>>>>> adc84def6f5cbc6115ac06c6b0c331365685d0b0
                 {c.location?.lat && (
                   <p className="location">
-                    📍 {c.location.lat.toFixed(4)}, {c.location.lng.toFixed(4)}
+                    📍 {c.location.lat.toFixed(4)},{" "}
+                    {c.location.lng.toFixed(4)}
                   </p>
                 )}
-<<<<<<< HEAD
-=======
 
-                {c.imageUrl && (
-                  <img
-                    src={`data:image/jpeg;base64,${c.imageUrl}`}
-                    alt="Complaint"
-                    className="complaint-image"
-                  />
+                {c.riskScore && (
+                  <p className="risk">
+                    Risk Score: {c.riskScore}
+                  </p>
                 )}
 
-                {/* 🚑 Driver Info for assigned complaints */}
+                {c.priority && (
+                  <p className="priority">
+                    Priority: {c.priority}
+                  </p>
+                )}
+
+                {/* Assigned Driver Info */}
                 {c.assignedDriver && (
                   <div className="driver-info">
-                    <h4>🚑 Driver Details</h4>
+                    <h4>Driver Details</h4>
                     <p>Name: {c.assignedDriver.name}</p>
                     <p>Phone: {c.assignedDriver.phone}</p>
                     <p>Status: {c.driverStatus}</p>
                   </div>
                 )}
 
-                {/* ✅ Resolved Time */}
+                {/* Completed Info */}
                 {c.driverStatus === "Completed" && c.resolvedTime && (
                   <small style={{ color: "#16a34a" }}>
-                    Completed at: {new Date(c.resolvedTime).toLocaleString()}
+                    Completed at:{" "}
+                    {new Date(c.resolvedTime).toLocaleString()}
                   </small>
                 )}
->>>>>>> adc84def6f5cbc6115ac06c6b0c331365685d0b0
               </div>
             ))}
           </div>
