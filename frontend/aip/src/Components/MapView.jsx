@@ -1,35 +1,91 @@
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from "react-leaflet";
+// src/Components/MapView.jsx
 
-function LocationMarker({ setLocation }) {
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  useMapEvents,
+  useMap
+} from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+/* ===========================
+   FIX LEAFLET DEFAULT ICON
+=========================== */
+delete L.Icon.Default.prototype._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+});
+
+/* ===========================
+   CLICK TO UPDATE LOCATION
+=========================== */
+function LocationMarker({ setUserLocation }) {
   useMapEvents({
     click(e) {
-      setLocation({
-        lat: e.latlng.lat,
-        lng: e.latlng.lng
+      const { lat, lng } = e.latlng;
+
+      setUserLocation({
+        lat,
+        lng,
       });
-    }
+    },
   });
+
   return null;
 }
 
+/* ===========================
+   RECENTER MAP
+=========================== */
 function RecenterMap({ location }) {
   const map = useMap();
 
-  if (location && location.lat && location.lng) {
-    // Smoothly move map to user location
-    map.flyTo([location.lat, location.lng], 15, { animate: true });
+  if (location?.lat && location?.lng) {
+    map.flyTo([location.lat, location.lng], 15, {
+      animate: true,
+      duration: 1.2,
+    });
   }
 
   return null;
 }
 
-function MapView({ complaints = [], userLocation, setUserLocation }) {
-  // Only render map when location is ready
-  const center = userLocation
-    ? [userLocation.lat, userLocation.lng]
-    : null; // wait for userLocation
+/* ===========================
+   MAIN MAP VIEW
+=========================== */
+function MapView({
+  complaints = [],
+  userLocation,
+  setUserLocation,
+}) {
+  if (!userLocation?.lat || !userLocation?.lng) {
+    return (
+      <div
+        style={{
+          height: "400px",
+          borderRadius: "14px",
+          background: "#020617",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#94a3b8",
+        }}
+      >
+        Select location to load map...
+      </div>
+    );
+  }
 
-  if (!center) return <div style={{ height: "400px", borderRadius: "14px", background: "#020617" }}>Loading map...</div>;
+  const center = [userLocation.lat, userLocation.lng];
 
   return (
     <MapContainer
@@ -42,30 +98,36 @@ function MapView({ complaints = [], userLocation, setUserLocation }) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      {/* Click-to-select location */}
-      <LocationMarker setLocation={setUserLocation} />
+      {/* Click to change location */}
+      <LocationMarker setUserLocation={setUserLocation} />
 
-      {/* Recenter map */}
+      {/* Smooth recenter */}
       <RecenterMap location={userLocation} />
 
-      {/* Marker for user location */}
+      {/* User marker */}
       <Marker position={center}>
         <Popup>Your Current Location</Popup>
       </Marker>
 
-      {/* Complaints markers */}
-      {complaints.map(c => (
-        c.location && (
-          <Marker key={c._id} position={[c.location.lat, c.location.lng]}>
+      {/* Complaint markers */}
+      {complaints.map((c) =>
+        c.location ? (
+          <Marker
+            key={c._id}
+            position={[c.location.lat, c.location.lng]}
+          >
             <Popup>
-              <b>{c.category}</b><br />
-              {c.text}<br />
-              Status: {c.status}<br />
+              <b>{c.category}</b>
+              <br />
+              {c.text}
+              <br />
+              Status: {c.status}
+              <br />
               Priority: {c.priority}
             </Popup>
           </Marker>
-        )
-      ))}
+        ) : null
+      )}
     </MapContainer>
   );
 }

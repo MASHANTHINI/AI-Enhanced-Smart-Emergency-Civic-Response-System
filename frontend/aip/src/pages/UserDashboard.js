@@ -7,6 +7,7 @@ import MapView from "../Components/MapView";
 
 function UserDashboard() {
   const [text, setText] = useState("");
+  const [category, setCategory] = useState(""); // NEW: Category
   const [image, setImage] = useState(null); // future use
   const [complaints, setComplaints] = useState([]);
   const [location, setLocation] = useState(null);
@@ -18,14 +19,11 @@ function UserDashboard() {
   ================================= */
   const loadComplaints = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:5001/api/complaints/my",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await axios.get("http://localhost:5001/api/complaints/my", {
+        headers: {
+          Authorization: `Bearer ${token}`, // FIX: Template literal
+        },
+      });
 
       setComplaints(res.data);
     } catch (err) {
@@ -74,6 +72,11 @@ function UserDashboard() {
       return;
     }
 
+    if (!category) {
+      toast.warning("Please select a category!");
+      return;
+    }
+
     if (!location?.lat || !location?.lng) {
       toast.warning("Please select a location!");
       return;
@@ -81,25 +84,23 @@ function UserDashboard() {
 
     const payload = {
       text,
+      category, // NEW
       lat: location.lat,
       lng: location.lng,
     };
 
     try {
-      await axios.post(
-        "http://localhost:5001/api/complaints",
-        payload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await axios.post("http://localhost:5001/api/complaints", payload, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       toast.success("Complaint submitted successfully!");
 
       setText("");
+      setCategory(""); // RESET category
       setImage(null);
       setLocation(null);
 
@@ -128,6 +129,19 @@ function UserDashboard() {
           required
         />
 
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          required
+        >
+          <option value="">Select Category</option>
+          <option value="Accident">Accident</option>
+          <option value="Medical">Medical</option>
+          <option value="Fire">Fire</option>
+          <option value="Pipe Leakage">Pipe Leakage</option>
+          <option value="Electrical">Electrical</option>
+        </select>
+
         <button
           type="button"
           className="use-location-btn"
@@ -148,8 +162,8 @@ function UserDashboard() {
             </div>
 
             <small style={{ color: "#94a3b8" }}>
-              Selected Location:{" "}
-              {location.lat.toFixed(5)}, {location.lng.toFixed(5)}
+              Selected Location: {location.lat.toFixed(5)},{" "}
+              {location.lng.toFixed(5)}
             </small>
           </>
         )}
@@ -191,22 +205,12 @@ function UserDashboard() {
 
                 {c.location?.lat && (
                   <p className="location">
-                    📍 {c.location.lat.toFixed(4)},{" "}
-                    {c.location.lng.toFixed(4)}
+                    📍 {c.location.lat.toFixed(4)}, {c.location.lng.toFixed(4)}
                   </p>
                 )}
 
-                {c.riskScore && (
-                  <p className="risk">
-                    Risk Score: {c.riskScore}
-                  </p>
-                )}
-
-                {c.priority && (
-                  <p className="priority">
-                    Priority: {c.priority}
-                  </p>
-                )}
+                {c.riskScore && <p className="risk">Risk Score: {c.riskScore}</p>}
+                {c.priority && <p className="priority">Priority: {c.priority}</p>}
 
                 {/* Assigned Driver Info */}
                 {c.assignedDriver && (
@@ -221,8 +225,7 @@ function UserDashboard() {
                 {/* Completed Info */}
                 {c.driverStatus === "Completed" && c.resolvedTime && (
                   <small style={{ color: "#16a34a" }}>
-                    Completed at:{" "}
-                    {new Date(c.resolvedTime).toLocaleString()}
+                    Completed at: {new Date(c.resolvedTime).toLocaleString()}
                   </small>
                 )}
               </div>

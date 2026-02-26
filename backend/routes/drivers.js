@@ -5,7 +5,7 @@ const protect = require("../middleware/authMiddleware");
 const router = express.Router();
 
 /* =========================
-   GET ALL DRIVERS
+   GET ALL RESOURCES
 ========================= */
 router.get("/", protect(["admin"]), async (req, res) => {
   const drivers = await Driver.find();
@@ -13,15 +13,16 @@ router.get("/", protect(["admin"]), async (req, res) => {
 });
 
 /* =========================
-   ADD DRIVER
+   ADD RESOURCE
 ========================= */
 router.post("/add", protect(["admin"]), async (req, res) => {
-  const { name, phone, telegramChatId, lat, lng } = req.body;
+  const { name, phone, telegramChatId, lat, lng, serviceType } = req.body;
 
   const driver = await Driver.create({
     name,
     phone,
     telegramChatId,
+    serviceType,
     location: {
       lat,
       lng,
@@ -32,11 +33,11 @@ router.post("/add", protect(["admin"]), async (req, res) => {
 });
 
 /* =========================
-   DELETE DRIVER (optional)
+   DELETE RESOURCE
 ========================= */
 router.delete("/:id", protect(["admin"]), async (req, res) => {
   await Driver.findByIdAndDelete(req.params.id);
-  res.json({ message: "Deleted" });
+  res.json({ message: "Deleted successfully" });
 });
 
 module.exports = router;

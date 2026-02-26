@@ -1,5 +1,3 @@
-// services/dispatchAgent.js
-
 const Driver = require("../models/Driver");
 const axios = require("axios");
 
@@ -25,55 +23,67 @@ async function sendTelegramMessage(chatId, text) {
 }
 
 /**
- * Auto-assign driver ONLY for emergency complaints
- */
-async function autoDispatchAgent(complaint) {
+ * Smart Auto Dispatch
+ */async function autoDispatchAgent(complaint) {
   try {
-    //Define emergency categories
-    const emergencyCategories = ["Accident", "Fire", "Medical"];
+    let requiredService;
 
-    //If not emergency → do NOT assign driver
-    if (!emergencyCategories.includes(complaint.category)) {
-      console.log(
-        `Complaint ${complaint._id} is not emergency. No driver assigned.`
-      );
+    const category = complaint.category?.toLowerCase();
+
+    if (!category) {
+      console.log("No category provided");
       return;
     }
 
-    //Find available driver
-    const driver = await Driver.findOne({ available: true });
+    if (category.includes("medical") || category.includes("accident")) {
+      requiredService = "Ambulance";
+    }
+    else if (category.includes("fire")) {
+      requiredService = "Firefighter";
+    }
+    else if (category.includes("pipe") || category.includes("leak")) {
+      requiredService = "Plumber";
+    }
+    else if (category.includes("electric")) {
+      requiredService = "Electrician";
+    }
+    else {
+      console.log(`Complaint ${complaint._id} does not require field resource`);
+      return;
+    }
+
+    const driver = await Driver.findOne({
+      available: true,
+      serviceType: { $regex: new RegExp(requiredService, "i") }
+    });
 
     if (!driver) {
-      console.log("No available drivers for complaint:", complaint._id);
+      console.log(`No available ${requiredService}`);
       return;
     }
 
-    // ✅ Assign driver
     complaint.assignedDriver = driver._id;
     complaint.driverStatus = "Assigned";
-    complaint.status = "Approved"; // Auto-approve emergency
-    complaint.agentStatus = "Driver Assigned";
+    complaint.status = "Approved";
+    complaint.agentStatus = "Assigned";
 
     await complaint.save();
 
-    // 🔄 Mark driver as busy
     driver.available = false;
     await driver.save();
 
-    console.log(
-      `Complaint ${complaint._id} assigned to driver ${driver.name}`
-    );
+    console.log(`Assigned ${driver.name}`);
 
-    // Notify driver
     if (driver.telegramChatId) {
       await sendTelegramMessage(
         driver.telegramChatId,
-        `EMERGENCY ASSIGNED\n\n` +
-          `Complaint: ${complaint.text}\n` +
-          `Category: ${complaint.category}\n` +
-          `Location: ${complaint.location.lat}, ${complaint.location.lng}`
+        `🚨 NEW ${requiredService.toUpperCase()} ASSIGNMENT\n\n` +
+        `Complaint: ${complaint.text}\n` +
+        `Category: ${complaint.category}\n` +
+        `Location: ${complaint.location.lat}, ${complaint.location.lng}`
       );
     }
+
   } catch (err) {
     console.error("AUTO DISPATCH ERROR:", err);
   }

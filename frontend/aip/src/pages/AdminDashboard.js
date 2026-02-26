@@ -14,118 +14,70 @@ function AdminDashboard() {
     telegramChatId: "",
     lat: "",
     lng: "",
+    serviceType: "Ambulance",
   });
 
-  /* ================================
-     LOAD COMPLAINTS
-  ================================= */
+  /* LOAD DATA */
   const loadComplaints = async () => {
-    try {
-      const res = await axios.get(
-        "http://localhost:5001/api/complaints",
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      setComplaints(res.data);
-    } catch (err) {
-      console.error("Fetch complaints error:", err);
-    }
+    const res = await axios.get("http://localhost:5001/api/complaints", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    });
+    setComplaints(res.data);
   };
 
-  /* ================================
-     LOAD DRIVERS
-  ================================= */
   const loadDrivers = async () => {
-    try {
-      const res = await axios.get(
-        "http://localhost:5001/api/drivers",
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      setDrivers(res.data);
-    } catch (err) {
-      console.error("Fetch drivers error:", err);
-    }
+    const res = await axios.get("http://localhost:5001/api/drivers", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    });
+    setDrivers(res.data);
   };
 
-  /* ================================
-     AUTO REFRESH (AGENT MONITOR MODE)
-  ================================= */
   useEffect(() => {
     loadComplaints();
     loadDrivers();
-
     const interval = setInterval(() => {
       loadComplaints();
       loadDrivers();
     }, 3000);
-
     return () => clearInterval(interval);
   }, []);
 
-  /* ================================
-     APPROVE COMPLAINT
-  ================================= */
+  /* APPROVE */
   const approve = async (id) => {
-    try {
-      await axios.put(
-        `http://localhost:5001/api/complaints/${id}/approve`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      loadComplaints();
-    } catch (err) {
-      alert("Approval failed");
-    }
+    await axios.put(
+      `http://localhost:5001/api/complaints/${id}/approve`,
+      {},
+      { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+    );
+    loadComplaints();
   };
 
-  /* ================================
-     HANDLE DRIVER FORM
-  ================================= */
+  /* FORM HANDLING */
   const handleChange = (e) => {
     setDriverForm({ ...driverForm, [e.target.name]: e.target.value });
   };
 
   const addDriver = async () => {
-    try {
-      await axios.post(
-        "http://localhost:5001/api/drivers/add",
-        driverForm,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+    await axios.post(
+      "http://localhost:5001/api/drivers/add",
+      driverForm,
+      { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+    );
 
-      setDriverForm({
-        name: "",
-        phone: "",
-        telegramChatId: "",
-        lat: "",
-        lng: "",
-      });
+    setDriverForm({
+      name: "",
+      phone: "",
+      telegramChatId: "",
+      lat: "",
+      lng: "",
+      serviceType: "Ambulance",
+    });
 
-      setShowDriverForm(false);
-      loadDrivers();
-    } catch (err) {
-      alert("Failed to add driver");
-    }
+    setShowDriverForm(false);
+    loadDrivers();
   };
 
-  /* ================================
-     STATS
-  ================================= */
+  /* STATS */
   const total = complaints.length;
   const pending = complaints.filter(c => c.status === "Pending").length;
   const approved = complaints.filter(c => c.status === "Approved").length;
@@ -135,159 +87,53 @@ function AdminDashboard() {
     <div className="admin-dashboard">
       <header>
         <h1>AI Command & Control Center</h1>
-        <p>Autonomous monitoring and resource allocation system</p>
       </header>
 
-      {/* ================================
-          STATS
-      ================================= */}
       <div className="stats">
-        <div className="stat-card total">
-          <h2>{total}</h2>
-          <p>Total</p>
-        </div>
-        <div className="stat-card pending">
-          <h2>{pending}</h2>
-          <p>Pending</p>
-        </div>
-        <div className="stat-card approved">
-          <h2>{approved}</h2>
-          <p>Assigned</p>
-        </div>
-        <div className="stat-card escalated">
-          <h2>{escalated}</h2>
-          <p>Escalated</p>
-        </div>
+        <div className="stat-card total"><h2>{total}</h2><p>Total</p></div>
+        <div className="stat-card pending"><h2>{pending}</h2><p>Pending</p></div>
+        <div className="stat-card approved"><h2>{approved}</h2><p>Assigned</p></div>
+        <div className="stat-card escalated"><h2>{escalated}</h2><p>Escalated</p></div>
       </div>
 
-      {/* ================================
-          DRIVER SECTION
-      ================================= */}
       <section className="driver-section">
-        <button
-          className="toggle-driver-form"
-          onClick={() => setShowDriverForm(!showDriverForm)}
-        >
-          {showDriverForm ? "Close Add Driver Form" : "Add Driver / Ambulance"}
+        <button onClick={() => setShowDriverForm(!showDriverForm)}>
+          {showDriverForm ? "Close Resource Form" : "Add Resource"}
         </button>
 
         {showDriverForm && (
           <div className="driver-form">
-            <input
-              type="text"
-              name="name"
-              placeholder="Name"
-              value={driverForm.name}
-              onChange={handleChange}
-            />
-            <input
-              type="text"
-              name="phone"
-              placeholder="Phone"
-              value={driverForm.phone}
-              onChange={handleChange}
-            />
-            <input
-              type="text"
-              name="telegramChatId"
-              placeholder="Telegram Chat ID"
-              value={driverForm.telegramChatId}
-              onChange={handleChange}
-            />
+            <input name="name" placeholder="Name" value={driverForm.name} onChange={handleChange} />
+            <input name="phone" placeholder="Phone" value={driverForm.phone} onChange={handleChange} />
+            <input name="telegramChatId" placeholder="Telegram Chat ID" value={driverForm.telegramChatId} onChange={handleChange} />
 
-            <p style={{ fontSize: "13px", marginBottom: "6px" }}>
-              📍 Click map to select driver location
-            </p>
+            <select name="serviceType" value={driverForm.serviceType} onChange={handleChange}>
+              <option value="Ambulance">🚑 Ambulance</option>
+              <option value="Firefighter">🔥 Firefighter</option>
+              <option value="Plumber">🚰 Plumber</option>
+              <option value="Electrician">⚡ Electrician</option>
+            </select>
 
             <LocationPicker
               setLocation={(loc) =>
-                setDriverForm({
-                  ...driverForm,
-                  lat: loc.lat,
-                  lng: loc.lng,
-                })
+                setDriverForm({ ...driverForm, lat: loc.lat, lng: loc.lng })
               }
             />
 
-            {driverForm.lat && (
-              <p className="selected-coords">
-                Selected: {Number(driverForm.lat).toFixed(4)},{" "}
-                {Number(driverForm.lng).toFixed(4)}
-              </p>
-            )}
-
-            <button onClick={addDriver}>Add Driver</button>
+            <button onClick={addDriver}>Add Resource</button>
           </div>
         )}
       </section>
 
-      {/* ================================
-          DRIVERS LIST
-      ================================= */}
       <section className="drivers-list">
-        <h2>Registered Drivers</h2>
+        <h2>Registered Resources</h2>
         {drivers.map((d) => (
           <div key={d._id} className="driver-card">
             <p>👤 {d.name}</p>
             <p>📞 {d.phone}</p>
-            <p>💬 {d.telegramChatId}</p>
+            <p>🛠️ {d.serviceType}</p>
             <p>📍 {d.location?.lat}, {d.location?.lng}</p>
-            <p>🟢 {d.available ? "Available" : "Busy"}</p>
-          </div>
-        ))}
-      </section>
-
-      {/* ================================
-          COMPLAINTS GRID
-      ================================= */}
-      <section className="complaints-grid">
-        {complaints.map((c) => (
-          <div className="complaint-card" key={c._id}>
-            <div className="card-header">
-              <span className={`urgency ${c.urgency?.toLowerCase()}`}>
-                {c.urgency || "N/A"}
-              </span>
-              <span className={`status ${c.status?.toLowerCase()}`}>
-                {c.status}
-              </span>
-            </div>
-
-            <p className="user">👤 {c.user?.name || "Citizen"}</p>
-            <p className="category"> {c.category || "General"}</p>
-            <p className="desc">{c.text}</p>
-            <p className="location">
-              {c.location?.lat}, {c.location?.lng}
-            </p>
-            <p className="risk">AI Risk Score: {c.riskScore || "N/A"}</p>
-            <p className="priority">Priority: {c.priority || "N/A"}</p>
-
-            <p className="agent">
-              Agent:{" "}
-              <b
-                style={{
-                  color:
-                    c.agentStatus === "Assigned"
-                      ? "#22c55e"
-                      : c.agentStatus === "Escalated"
-                      ? "#ef4444"
-                      : "#facc15",
-                }}
-              >
-                {c.agentStatus || "Waiting"}
-              </b>
-            </p>
-
-            {c.assignedDriver && (
-              <p className="resource">
-                Assigned: <b>{c.assignedDriver.name}</b>
-              </p>
-            )}
-
-            {c.status === "Pending" && (
-              <button onClick={() => approve(c._id)}>
-                Manual Approve
-              </button>
-            )}
+            <p>{d.available ? "🟢 Available" : "🔴 Busy"}</p>
           </div>
         ))}
       </section>

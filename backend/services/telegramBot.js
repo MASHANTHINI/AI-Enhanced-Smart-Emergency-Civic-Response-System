@@ -1,47 +1,47 @@
+// services/telegramBot.js
+
 const TelegramBot = require("node-telegram-bot-api");
 const Driver = require("../models/Driver");
-const Complaint = require("../models/Complaint");
+const { completeComplaint } = require("./completeService"); // correct path
 
-const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {
-  polling: true, // ⭐ NO WEBHOOK
-});
-
+const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
 console.log("🤖 Telegram polling started...");
 
-// Listen for messages
 bot.on("message", async (msg) => {
-  const text = msg.text?.toLowerCase();
   const chatId = msg.chat.id;
+  const text = msg.text?.toLowerCase() || "";
 
-  if (text === "completed") {
-    try {
-      // find driver by chatId
-      const driver = await Driver.findOne({ telegramChatId: chatId });
+  try {
+    let driver = await Driver.findOne({ telegramChatId: chatId });
 
-      if (!driver) return;
-
-      // find assigned complaint
-      const complaint = await Complaint.findOne({
-        assignedDriver: driver._id,
-        driverStatus: "Assigned",
+    // Auto-register driver if not found
+    if (!driver) {
+      driver = new Driver({
+        name: msg.from.first_name || "Unknown",
+        telegramChatId: chatId,
+        available: true,
       });
-
-      if (!complaint) return;
-
-      // complete complaint
-      complaint.status = "Completed";
-      complaint.driverStatus = "Completed";
-      await complaint.save();
-
-      // make driver available
-      driver.available = true;
       await driver.save();
-
-      bot.sendMessage(chatId, "✅ Complaint marked completed. You are available now.");
-
-      console.log("✅ Auto completed via polling");
-    } catch (err) {
-      console.log(err);
+      bot.sendMessage(chatId, `✅ Welcome ${driver.name}! You are now registered as a driver.`);
+      return; // stop here, wait for next message
     }
+
+    if (text === "completed") {
+      const result = await completeComplaint(driver._id, true);
+
+      if (result.success) {
+        bot.sendMessage(
+          chatId,
+          `✅ ${result.count} complaint(s) marked completed. You are now available.`
+        );
+      } else {
+        bot.sendMessage(chatId, "⚠️ You have no active complaints to complete.");
+      }
+    } else {
+      bot.sendMessage(chatId, 'ℹ️ Send "completed" when you finish a complaint.');
+    }
+  } catch (err) {
+    console.error("❌ Telegram bot error:", err);
+    bot.sendMessage(chatId, "❌ Something went wrong. Try again later.");
   }
 });

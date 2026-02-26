@@ -21,40 +21,40 @@ const upload = multer({ storage });
 ===================================================== */
 router.post("/", protect(), upload.single("image"), async (req, res) => {
   try {
-    // ✅ SUPPORT BOTH JSON & FORM DATA
+    // ---------------- REQUIRED FIELDS ----------------
     const text = req.body.text;
+    const lat = Number(req.body.lat || req.body?.location?.lat);
+    const lng = Number(req.body.lng || req.body?.location?.lng);
 
-    const latitude =
-      req.body.lat ||
-      req.body?.location?.lat;
-
-    const longitude =
-      req.body.lng ||
-      req.body?.location?.lng;
-
-    if (!text || !latitude || !longitude) {
+    if (!text || !lat || !lng) {
       return res.status(400).json({ message: "Missing required fields" });
     }
-
-    const lat = Number(latitude);
-    const lng = Number(longitude);
-
+// ---------------- DEFAULTS ----------------
     let urgency = "Low";
-    let priority = 1;
-    let category = "General";
+    let priority = null; // will be set by AI if available
+    let category = req.body.category || "General"; // frontend category preferred
 
-    /* ---------- AI SERVICE (Optional) ---------- */
+    // ---------------- AI SERVICE (Optional) ----------------
     try {
       const aiRes = await axios.post("http://localhost:8000/analyze", { text });
+      urgency = aiRes.data?.urgency || urgency;
 
-      urgency = aiRes.data?.urgency || "Low";
-      priority = aiRes.data?.priority || 1;
-      category = aiRes.data?.category || "General";
+      // ✅ Priority comes from AI service, overrides default
+      if (aiRes.data?.priority !== undefined) {
+        priority = aiRes.data.priority;
+      } else {
+        priority = 1; // fallback if AI does not provide it
+      }
+
+      // Only override category if frontend did not provide
+      category = req.body.category || aiRes.data?.category || "General";
+
     } catch (err) {
       console.log("⚠️ AI service not reachable, using defaults");
+      if (!priority) priority = 1; // fallback
     }
 
-    /* ---------- CREATE COMPLAINT ---------- */
+    // ---------------- CREATE COMPLAINT ----------------
     const complaint = new Complaint({
       user: req.user.id,
       text,
@@ -71,7 +71,7 @@ router.post("/", protect(), upload.single("image"), async (req, res) => {
 
     await complaint.save();
 
-    /* ---------- AUTO DISPATCH ---------- */
+    // ---------------- AUTO DISPATCH ----------------
     await autoDispatchAgent(complaint);
 
     res.status(201).json(complaint);
@@ -160,7 +160,7 @@ router.put("/:id/complete", protect(["admin"]), async (req, res) => {
       if (complaint.assignedDriver.telegramChatId) {
         await sendTelegramMessage(
           complaint.assignedDriver.telegramChatId,
-          ` Complaint "${complaint.text}" completed. You are now available.`
+          `Complaint "${complaint.text}" completed. You are now available.`
         );
       }
     }
