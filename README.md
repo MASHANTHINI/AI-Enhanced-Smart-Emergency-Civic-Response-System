@@ -82,7 +82,7 @@ TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 npm start
 ```
 
-* ✅ Runs at `http://localhost:5001`
+* Runs at `http://localhost:5001`
 
 ---
 
@@ -112,7 +112,7 @@ REACT_APP_API_URL=http://localhost:5001/api
 npm start
 ```
 
-* ✅ Open `http://localhost:3000` in your browser
+* Open `http://localhost:3000` in your browser
 
 5. Build for production (for Netlify deployment):
 
@@ -162,7 +162,7 @@ pip install -r requirements.txt
 uvicorn priority:app --reload
 ```
 
-* ✅ Runs at `http://localhost:8000`
+* Runs at `http://localhost:8000`
 
 ---
 
@@ -216,9 +216,4 @@ uvicorn priority:app --reload
 
 ---
 
-### 8. License
-
-MIT License
-
-```
 
